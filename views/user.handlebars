@@ -355,61 +355,16 @@ function selectPreviouslySelectedScript() {
     if (sel_item != null)   parent.meshserver.send({ 'action': 'plugin', 'plugin': 'scripttask', 'pluginaction': 'loadScriptHistory', 'scriptId': sel_item });
 }
 
-function runWithVars(scriptId) {
-
-    let html =
-        'Variables (one per line)<br>' +
-        '<textarea id="rtvars" ' +
-        'style="width:100%;height:200px"></textarea>';
-
-    parent.setDialogMode(
-        2,
-        "Run Script",
-        3,
-        function() {
-
-            let txt =
-                parent.document
-                .getElementById('rtvars')
-                .value;
-
-            let vars = {};
-
-            txt.split('\n').forEach(function(line){
-
-                if(line.indexOf('=') === -1) return;
-
-                let p = line.split('=');
-
-                vars[p[0].trim()] =
-                    p.slice(1).join('=').trim();
-            });
-
-            parent.meshserver.send({
-                action:'plugin',
-                plugin:'scripttask',
-                pluginaction:'runScript',
-                scriptId:scriptId,
-                nodes:[parent.currentNode._id],
-                runtimeVars:vars,
-                currentNodeId:parent.currentNode._id
-            });
-
-        },
-        html
-    );
-}
-   
 function goRun() {
     var selScript = document.querySelectorAll('.liselected');
     if (selScript.length) {
       var scriptId = selScript[0].getAttribute('x-data-id');
-      if (scriptId == selScript[0].getAttribute('x-data-folder'))
+      if (scriptId == selScript[0].getAttribute('x-folder-id'))
       {
           parent.setDialogMode(2, "Oops!", 1, null, 'Please select a script. A folder is currently selected.'); 
       }
       else {
-          runWithVars(scriptId);
+          parent.meshserver.send({ 'action': 'plugin', 'plugin': 'scripttask', 'pluginaction': 'runScript', 'scriptId': scriptId, 'nodes': [ parent.currentNode._id ], 'currentNodeId': parent.currentNode._id });
       }
     } else {
         parent.setDialogMode(2, "Oops!", 1, null, 'No script has been selected to run on the machines.'); 
