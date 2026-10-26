@@ -92,12 +92,52 @@ module.exports.scripttask = function (parent) {
                         finvals.forEach(fv => {
                             replaceVars[fv.name] = fv.value;
                         });
-                        replaceVars['GBL:meshId'] = obj.meshServer.webserver.wsagents[job.node]['dbMeshKey'];
-                        replaceVars['GBL:nodeId'] = job.node;
-                        replaceVars['GBL:runBy'] = job.runBy || 'unknown';
+                        var agent =
+                            obj.meshServer.webserver.wsagents[job.node];
+                        replaceVars['GBL:meshId'] =
+                            agent.dbMeshKey;
+                        replaceVars['GBL:nodeId'] =
+                            job.node;
+                        replaceVars['GBL:runBy'] =
+                            job.runBy || 'unknown';
+                        replaceVars['meshId'] =
+                            agent.dbMeshKey;
+                        replaceVars['nodeId'] =
+                            job.node;
+                        replaceVars['runBy'] =
+                            job.runBy || 'unknown';
+                        replaceVars['runDate'] =
+                            new Date().toLocaleDateString();
                         //console.log('FV IS', finvals);
                         //console.log('RV IS', replaceVars);
                     }
+                    try {
+    var nodeObj =
+        obj.meshServer.webserver.meshes[
+            agent.dbMeshKey
+        ];
+
+    if (nodeObj) {
+        replaceVars['meshName'] =
+            nodeObj.name;
+    }
+} catch(e) {}
+
+try {
+    var nodeDb =
+        obj.meshServer.webserver.meshes[
+            agent.dbMeshKey
+        ];
+
+    replaceVars['hostname'] =
+        agent.name || '';
+
+    replaceVars['computerName'] =
+        agent.name || '';
+
+    replaceVars['nodeName'] =
+        agent.name || '';
+} catch(e) {}
                     var dispatchTime = Math.floor(new Date() / 1000);
                     var jObj = { 
                         action: 'plugin', 
