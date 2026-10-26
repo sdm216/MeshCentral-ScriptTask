@@ -104,7 +104,7 @@ module.exports.CreateDB = function(meshserver) {
               node: null,
               scriptId: null,
               scriptName: null, // in case the original reference is deleted in the future
-              replaceVars: null,
+              replaceVars: {},
               returnVal: null,
               errorVal: null,
               returnAct: null,
