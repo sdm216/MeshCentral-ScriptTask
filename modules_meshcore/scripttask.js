@@ -454,7 +454,26 @@ function runScript(sObj, jObj) {
     if (jObj.replaceVars != null) {
         Object.getOwnPropertyNames(jObj.replaceVars).forEach(function(key) {
           var val = jObj.replaceVars[key];
-          sObj.content = sObj.content.replace(new RegExp('#'+key+'#', 'g'), val);
+          var scriptContent = sObj.content;
+          if (jObj.replaceVars != null) {
+              Object.getOwnPropertyNames(jObj.replaceVars).forEach(function(key) {
+                  var val = jObj.replaceVars[key];
+                  scriptContent = scriptContent.replace(
+                      new RegExp('#' + key + '#', 'g'),
+                      String(val)
+                  );
+              });
+
+              scriptContent = scriptContent.replace(
+                  new RegExp('#(.*?)#', 'g'),
+                  'VAR_NOT_FOUND'
+              );
+          }
+
+          var scriptObj = Object.assign({}, sObj);
+          scriptObj.content = scriptContent;
+          sObj = scriptObj;
+        
           dbg('replacing var '+ key + ' with ' + val);
         });
         sObj.content = sObj.content.replace(new RegExp('#(.*?)#', 'g'), 'VAR_NOT_FOUND');
