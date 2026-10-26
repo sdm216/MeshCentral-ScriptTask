@@ -659,41 +659,66 @@ try {
                 })
                 .catch(e => { console.log('PLUGIN: ScriptTask: Error adding schedules. The error was: ', e); });
             break;
-            case 'runScript':
-              var scriptId = command.scriptId;
-              var sel = command.nodes;
-              var proms = [];
-              if (Array.isArray(sel)) {
-                sel.forEach((s) => {
-                  proms.push(
-    obj.db.addJob({
-        scriptId: scriptId,
-        node: s,
-        runBy: myparent.user.name,
-        replaceVars: command.runtimeVars || {}
+case 'runScript':
+    var scriptId = command.scriptId;
+    var sel = command.nodes;
+    var proms = [];
+
+    if (Array.isArray(sel)) {
+
+        sel.forEach((s) => {
+
+            proms.push(
+                obj.db.addJob({
+                    scriptId: scriptId,
+                    node: s,
+                    runBy: myparent.user.name,
+                    replaceVars: command.runtimeVars || {}
+                })
+            );
+
+        });
+
+    } else {
+
+        proms.push(
+            obj.db.addJob({
+                scriptId: scriptId,
+                node: sel,
+                runBy: myparent.user.name,
+                replaceVars: command.runtimeVars || {}
+            })
+        );
+
+    }
+
+    Promise.all(proms)
+    .then(() => {
+        return obj.db.get(scriptId);
     })
-);
-                });
-              } proms.push(obj.db.addJob({
-    scriptId: scriptId,
-    node: sel,
-    runBy: myparent.user.name,
-    replaceVars: command.runtimeVars || {}
-}));
-}
-              Promise.all(proms)
-              .then(() => {
-                  return obj.db.get(scriptId);
-              })
-              .then(scripts => {
-                  return obj.db.updateScriptJobName(scriptId, scripts[0].name);
-              })
-              .then(() => {
-                  obj.resetQueueTimer();
-                  obj.queueRun();
-                  obj.updateFrontEnd( { scriptId: scriptId, nodeId: command.currentNodeId } );
-              });
-            break;
+    .then(scripts => {
+        return obj.db.updateScriptJobName(
+            scriptId,
+            scripts[0].name
+        );
+    })
+    .then(() => {
+        obj.resetQueueTimer();
+        obj.queueRun();
+        obj.updateFrontEnd({
+            scriptId: scriptId,
+            nodeId: command.currentNodeId
+        });
+    });
+
+break;
+
+                replaceVars['runDate'] =
+    new Date().toLocaleDateString();
+
+                replaceVars['runTime'] =
+    new Date().toLocaleTimeString();
+                
             case 'getScript':
                 //obj.debug('ScriptTask', 'getScript Triggered', JSON.stringify(command));
                 obj.db.get(command.scriptId)
