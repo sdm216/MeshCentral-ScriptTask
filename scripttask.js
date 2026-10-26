@@ -674,12 +674,12 @@ try {
     })
 );
                 });
-              } else {
-    proms.push(obj.db.addJob({
-        scriptId: scriptId,
-        node: sel,
-        runBy: myparent.user.name
-    }));
+              } proms.push(obj.db.addJob({
+    scriptId: scriptId,
+    node: sel,
+    runBy: myparent.user.name,
+    replaceVars: command.runtimeVars || {}
+}));
 }
               Promise.all(proms)
               .then(() => {
