@@ -70,12 +70,7 @@ module.exports.scripttask = function (parent) {
                 .then(async (script) => {
                     script = script[0];
                     var foundVars = script.content.match(/#(.*?)#/g);
-                    var replaceVars =
-    Object.assign(
-        {},
-        job.replaceVars || {}
-    );
-
+                    var replaceVars = {};
                     if (foundVars != null && foundVars.length > 0) {
                         var foundVarNames = [];
                         foundVars.forEach(fv => {
@@ -97,52 +92,18 @@ module.exports.scripttask = function (parent) {
                         finvals.forEach(fv => {
                             replaceVars[fv.name] = fv.value;
                         });
-                        var agent =
-                            obj.meshServer.webserver.wsagents[job.node];
-                        replaceVars['GBL:meshId'] =
-                            agent.dbMeshKey;
-                        replaceVars['GBL:nodeId'] =
-                            job.node;
-                        replaceVars['GBL:runBy'] =
-                            job.runBy || 'unknown';
-                        replaceVars['meshId'] =
-                            agent.dbMeshKey;
-                        replaceVars['nodeId'] =
-                            job.node;
-                        replaceVars['runBy'] =
-                            job.runBy || 'unknown';
-                        replaceVars['runDate'] =
-                            new Date().toLocaleDateString();
+						var agent = obj.meshServer.webserver.wsagents[job.node];
+						replaceVars['runBy'] = job.runBy || 'unknown';
+						replaceVars['runDate'] = new Date().toLocaleDateString();
+						replaceVars['runTime'] = new Date().toLocaleTimeString();
+						replaceVars['nodeId'] = job.node;
+						replaceVars['meshId'] = agent.dbMeshKey;
+                        replaceVars['GBL:meshId'] = obj.meshServer.webserver.wsagents[job.node]['dbMeshKey'];
+                        replaceVars['GBL:nodeId'] = job.node;
+                        replaceVars['GBL:runBy'] = job.runBy || 'unknown';
                         //console.log('FV IS', finvals);
                         //console.log('RV IS', replaceVars);
                     }
-                    try {
-    var nodeObj =
-        obj.meshServer.webserver.meshes[
-            agent.dbMeshKey
-        ];
-
-    if (nodeObj) {
-        replaceVars['meshName'] =
-            nodeObj.name;
-    }
-} catch(e) {}
-
-try {
-    var nodeDb =
-        obj.meshServer.webserver.meshes[
-            agent.dbMeshKey
-        ];
-
-    replaceVars['hostname'] =
-        agent.name || '';
-
-    replaceVars['computerName'] =
-        agent.name || '';
-
-    replaceVars['nodeName'] =
-        agent.name || '';
-} catch(e) {}
                     var dispatchTime = Math.floor(new Date() / 1000);
                     var jObj = { 
                         action: 'plugin', 
@@ -659,66 +620,30 @@ try {
                 })
                 .catch(e => { console.log('PLUGIN: ScriptTask: Error adding schedules. The error was: ', e); });
             break;
-case 'runScript':
-    var scriptId = command.scriptId;
-    var sel = command.nodes;
-    var proms = [];
-
-    if (Array.isArray(sel)) {
-
-        sel.forEach((s) => {
-
-            proms.push(
-                obj.db.addJob({
-                    scriptId: scriptId,
-                    node: s,
-                    runBy: myparent.user.name,
-                    replaceVars: command.runtimeVars || {}
-                })
-            );
-
-        });
-
-    } else {
-
-        proms.push(
-            obj.db.addJob({
-                scriptId: scriptId,
-                node: sel,
-                runBy: myparent.user.name,
-                replaceVars: command.runtimeVars || {}
-            })
-        );
-
-    }
-
-    Promise.all(proms)
-    .then(() => {
-        return obj.db.get(scriptId);
-    })
-    .then(scripts => {
-        return obj.db.updateScriptJobName(
-            scriptId,
-            scripts[0].name
-        );
-    })
-    .then(() => {
-        obj.resetQueueTimer();
-        obj.queueRun();
-        obj.updateFrontEnd({
-            scriptId: scriptId,
-            nodeId: command.currentNodeId
-        });
-    });
-
-break;
-
-                replaceVars['runDate'] =
-    new Date().toLocaleDateString();
-
-                replaceVars['runTime'] =
-    new Date().toLocaleTimeString();
-                
+            case 'runScript':
+              var scriptId = command.scriptId;
+              var sel = command.nodes;
+              var proms = [];
+              if (Array.isArray(sel)) {
+                sel.forEach((s) => {
+                  proms.push(obj.db.addJob( { scriptId: scriptId, node: s, runBy: myparent.user.name } ));
+                });
+              } else {
+                proms.push(obj.db.addJob( { scriptId: scriptId, node: sel, runBy: myparent.user.name } ));
+              }
+              Promise.all(proms)
+              .then(() => {
+                  return obj.db.get(scriptId);
+              })
+              .then(scripts => {
+                  return obj.db.updateScriptJobName(scriptId, scripts[0].name);
+              })
+              .then(() => {
+                  obj.resetQueueTimer();
+                  obj.queueRun();
+                  obj.updateFrontEnd( { scriptId: scriptId, nodeId: command.currentNodeId } );
+              });
+            break;
             case 'getScript':
                 //obj.debug('ScriptTask', 'getScript Triggered', JSON.stringify(command));
                 obj.db.get(command.scriptId)
