@@ -451,32 +451,31 @@ function runScript(sObj, jObj) {
         });
     }
     if (jobIsRunning(jObj)) { dbg('Job already running job id [' + jObj.jobId + ']. Skipping.'); return; }
-    if (jObj.replaceVars != null) {
-        Object.getOwnPropertyNames(jObj.replaceVars).forEach(function(key) {
-          var val = jObj.replaceVars[key];
-          var scriptContent = sObj.content;
-          if (jObj.replaceVars != null) {
-              Object.getOwnPropertyNames(jObj.replaceVars).forEach(function(key) {
-                  var val = jObj.replaceVars[key];
-                  scriptContent = scriptContent.replace(
-                      new RegExp('#' + key + '#', 'g'),
-                      String(val)
-                  );
-              });
+    if (jObj.replaceVars != null) {var scriptContent = sObj.content;
 
-              scriptContent = scriptContent.replace(
-                  new RegExp('#(.*?)#', 'g'),
-                  'VAR_NOT_FOUND'
-              );
-          }
+if (jObj.replaceVars != null) {
 
-          var scriptObj = Object.assign({}, sObj);
-          scriptObj.content = scriptContent;
-          sObj = scriptObj;
-        
-          dbg('replacing var '+ key + ' with ' + val);
-        });
-        sObj.content = sObj.content.replace(new RegExp('#(.*?)#', 'g'), 'VAR_NOT_FOUND');
+    Object.getOwnPropertyNames(jObj.replaceVars).forEach(function(key) {
+
+        var val = jObj.replaceVars[key];
+
+        scriptContent = scriptContent.replace(
+            new RegExp('#' + key + '#', 'g'),
+            String(val)
+        );
+
+        dbg('replacing var ' + key + ' with ' + val);
+    });
+
+    scriptContent = scriptContent.replace(
+        new RegExp('#(.*?)#', 'g'),
+        'VAR_NOT_FOUND'
+    );
+}
+
+var scriptObj = Object.assign({}, sObj);
+scriptObj.content = scriptContent;
+sObj = scriptObj;
     }
     runningJobs.push(jObj.jobId);
     dbg('Running Script '+ sObj._id);
