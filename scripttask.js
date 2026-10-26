@@ -70,7 +70,12 @@ module.exports.scripttask = function (parent) {
                 .then(async (script) => {
                     script = script[0];
                     var foundVars = script.content.match(/#(.*?)#/g);
-                    var replaceVars = {};
+                    var replaceVars =
+    Object.assign(
+        {},
+        job.replaceVars || {}
+    );
+
                     if (foundVars != null && foundVars.length > 0) {
                         var foundVarNames = [];
                         foundVars.forEach(fv => {
@@ -660,7 +665,14 @@ try {
               var proms = [];
               if (Array.isArray(sel)) {
                 sel.forEach((s) => {
-                  proms.push(obj.db.addJob( { scriptId: scriptId, node: s, runBy: myparent.user.name } ));
+                  proms.push(
+    obj.db.addJob({
+        scriptId: scriptId,
+        node: s,
+        runBy: myparent.user.name,
+        replaceVars: command.runtimeVars || {}
+    })
+);
                 });
               } else {
                 proms.push(obj.db.addJob( { scriptId: scriptId, node: sel, runBy: myparent.user.name } ));
