@@ -675,8 +675,12 @@ try {
 );
                 });
               } else {
-                proms.push(obj.db.addJob( { scriptId: scriptId, node: sel, runBy: myparent.user.name } ));
-              }
+    proms.push(obj.db.addJob({
+        scriptId: scriptId,
+        node: sel,
+        runBy: myparent.user.name
+    }));
+}
               Promise.all(proms)
               .then(() => {
                   return obj.db.get(scriptId);
